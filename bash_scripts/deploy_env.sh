@@ -1,6 +1,9 @@
 #!/bin/bash
+
+# This script can be used as a starting point for a deployment script for interactive deployment.
+
 SCRIPT_NAME=$(basename "$0")
-#set -eET -o pipefail
+set -eET -o pipefail
 
 # Color variables
 GREEN='\033[0;32m'
@@ -59,7 +62,6 @@ if ! [[ $BUILD_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     exit 1
 fi
 
-
 echo "**************************************************"
 echo "Build version: $BUILD_VERSION"
 echo "Deploying to environment: $ENVIRONMENT"
@@ -72,7 +74,7 @@ echo "**************************************************"
 if [[ $CONFIRMATION == false ]]; then
     read -p "Are you sure you want to deploy version $BUILD_VERSION? (y/n) " -n 1 -r
     echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then 
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         echo -e "${YELLOW}Aborting deployment${NC}"
         exit 1
     fi
