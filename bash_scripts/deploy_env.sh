@@ -62,6 +62,12 @@ if ! [[ $BUILD_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     exit 1
 fi
 
+# check if npm is installed
+if ! command -v npm &> /dev/null; then
+    echo -e "${RED}npm could not be found. Please install npm before running this script.${NC}" >&2
+    exit 1
+fi
+
 echo "**************************************************"
 echo "Build version: $BUILD_VERSION"
 echo "Deploying to environment: $ENVIRONMENT"
