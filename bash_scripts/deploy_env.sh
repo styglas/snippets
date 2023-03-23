@@ -18,7 +18,14 @@ CONFIRMATION=false
 DEPLOY=true
 USER_UPPERCASE=${USER^^}
 DATE_STR=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
-ENVIRONMENT="dev"
+
+ALLOWED_REGIONS=("eu" "us")
+REGION="eu"
+
+declare -A REGION_ENVS
+REGION_ENVS["eu"]="dev-eu"
+REGION_ENVS["us"]="dev-us"
+
 
 usage() {
     echo "Usage: ${SCRIPT_NAME} -b <build_version> [-v] [-h] [-y]" >&2
@@ -27,12 +34,13 @@ usage() {
     echo "  -h                  Print this help message" >&2
     echo "  -y                  Skip confirmation" >&2
     echo "  -n                  Skip deploymeny (build only)" >&2
+    echo "  -r                  Deployment region (default: ${REGION})" >&2
     echo "" >&2
     echo "Example: ${SCRIPT_NAME} -b 1.2.3 -v" >&2
 }
 
 # Parse command line arguments
-while getopts "b:hvyn" opt; do
+while getopts "b:hvynr:" opt; do
     case $opt in
     # -b switch for build version
     b)
@@ -44,6 +52,9 @@ while getopts "b:hvyn" opt; do
     # -y to skip confirmation
     y)
         CONFIRMATION=true
+        ;;
+    r)
+        REGION=$OPTARG
         ;;
     # -n to skip deployment
     n)
@@ -63,12 +74,22 @@ while getopts "b:hvyn" opt; do
     esac
 done
 
-#Check for ambiguous options
+# Check for ambiguous options
 if [[ $DEPLOY == false && $CONFIRMATION == true ]]; then
     echo -e "${RED}Skiping deployment (-n) and bypassing confirmation (-y) at the same time is not a valid choice${NC}" >&2
     usage
     exit 1
 fi
+
+# Validate region input
+if [[ ! " ${ALLOWED_REGIONS[@]} " =~ " ${REGION} " ]]; then
+    echo -e "${RED}Invalid region. \"${REGION}\". Allowed regions are: ${ALLOWED_REGIONS[*]}${NC}" >&2
+    usage
+    exit 1
+fi
+
+# Lookup environment name from region
+ENVIRONMENT=${REGION_ENVS[$REGION]}
 
 # Validate build version input
 if ! [[ $BUILD_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -85,12 +106,12 @@ fi
 
 echo "**************************************************"
 echo "Build version: $BUILD_VERSION"
+echo "Region: $REGION"
 echo "Deploying to environment: $ENVIRONMENT"
 echo "BUILD_VERSION: $BUILD_VERSION"
 echo "USER: $USER_UPPERCASE"
 echo "DATE: $DATE_STR"
 echo "**************************************************"
-
 
 # do non-dangerous stuff
 echo -e "${GREEN}Building version ${BUILD_VERSION}${NC}"
