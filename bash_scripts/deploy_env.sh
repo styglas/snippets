@@ -8,7 +8,7 @@ set -eET -o pipefail
 # Color variables
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
+YELLOW='\033[1;33m' 
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
@@ -18,6 +18,7 @@ CONFIRMATION=false
 DEPLOY=true
 USER_UPPERCASE=${USER^^}
 DATE_STR=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
+EXTRA_ARGS="arg1=foo,arg2=bar"
 
 ALLOWED_REGIONS=("eu" "us")
 REGION="eu"
@@ -30,6 +31,7 @@ REGION_ENVS["us"]="dev-us"
 usage() {
     echo "Usage: ${SCRIPT_NAME} -b <build_version> [-v] [-h] [-y]" >&2
     echo "  -b <build_version>  Specify the build version to use" >&2
+    echo "  -c <extra_args>     Specify extra args to pass to the build script" >&2
     echo "  -v                  Print verbose output" >&2
     echo "  -h                  Print this help message" >&2
     echo "  -y                  Skip confirmation" >&2
@@ -40,7 +42,7 @@ usage() {
 }
 
 # Parse command line arguments
-while getopts "b:hvynr:" opt; do
+while getopts "b:hvynr:c:" opt; do
     case $opt in
     # -b switch for build version
     b)
@@ -61,6 +63,9 @@ while getopts "b:hvynr:" opt; do
         DEPLOY=false
         ;;
     # -h switch for help
+    c) 
+        EXTRA_ARGS=$OPTARG 
+        ;;
     h)
         usage
         exit 0
@@ -73,6 +78,16 @@ while getopts "b:hvynr:" opt; do
         ;;
     esac
 done
+
+#split extra args
+IFS=',' read -ra EXTRA_ARGS_ARRAY <<< "$EXTRA_ARGS"
+#append --earg to each arg
+for i in "${!EXTRA_ARGS_ARRAY[@]}"; do 
+    EXTRA_ARGS_ARRAY[$i]="--earg ${EXTRA_ARGS_ARRAY[$i]}"
+done
+#merge array into string
+EXTRA_ARGS=$(printf " %s" "${EXTRA_ARGS_ARRAY[@]}") 
+echo "Extra args: $EXTRA_ARGS"
 
 # Check for ambiguous options
 if [[ $DEPLOY == false && $CONFIRMATION == true ]]; then
@@ -134,5 +149,5 @@ if [[ $CONFIRMATION == false ]]; then
     fi
 fi
 echo -e "${GREEN}Deploying version ${BUILD_VERSION}${NC}"
-
+echo "Command: deploy --version $BUILD_VERSION --env $ENVIRONMENT $EXTRA_ARGS"
 # do dangerous stuff
