@@ -81,8 +81,10 @@ done
 
 #split extra args
 IFS=',' read -ra EXTRA_ARGS_ARRAY <<< "$EXTRA_ARGS"
+echo "Extra args array: ${EXTRA_ARGS_ARRAY[*]}"
 #append --earg to each arg
 for i in "${!EXTRA_ARGS_ARRAY[@]}"; do 
+    echo "i: $i"
     EXTRA_ARGS_ARRAY[$i]="--earg ${EXTRA_ARGS_ARRAY[$i]}"
 done
 #merge array into string
