@@ -109,8 +109,8 @@ fi
 ENVIRONMENT=${REGION_ENVS[$REGION]}
 
 # Validate build version input
-if ! [[ $BUILD_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo -e "${RED}Invalid version number. It must be a valid sematic version, ex. 1.2.3${NC}" >&2
+if ! [[ $BUILD_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ || $BUILD_VERSION == "latest" ]]; then
+    echo -e "${RED}Invalid version number. It must be a valid sematic version, ex. \"1.2.3\" or \"latest\"${NC}" >&2
     usage
     exit 1
 fi
